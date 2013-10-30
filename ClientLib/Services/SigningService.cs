@@ -4,9 +4,10 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ClrPlus.Core.Extensions;
+
 using Outercurve.ClientLib.IoItem;
 using Outercurve.ClientLib.Messages;
+using Outercurve.DTO;
 using Outercurve.DTO.Request;
 using Outercurve.DTO.Response;
 using Outercurve.DTO.Services.Azure;

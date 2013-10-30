@@ -8,7 +8,7 @@ namespace Outercurve.SigningApi
 {
     public class AzureClient : AzureClientBase
     {
-        public AzureClient(IFileSystem fs, string account, string key) : base(fs)
+        public AzureClient(IFs fs, string account, string key) : base(fs)
         {
             Root = new AzureService(account, key);
         }

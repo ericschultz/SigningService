@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Autofac;
+using Autofac.Configuration;
 using Autofac.Core.Lifetime;
 using Autofac.Integration.Mvc;
 using Funq;
@@ -35,22 +36,30 @@ namespace Outercurve.SigningApi
             builder.RegisterModule<DefaultModule>();
 
             var outerContainer = builder.Build();
-            var innerContainerBuilder = new ContainerBuilder();
+            using (var scope = outerContainer.BeginLifetimeScope())
+            {
+                var innerContainerBuilder = new ContainerBuilder();
+                innerContainerBuilder.RegisterModule<DefaultModule>();
+                //CopyFromOneToAnother(outerContainer, innerContainerBuilder);
+                //RegisterExtensions(scope, innerContainerBuilder);
+                RegisterAssemblyTypes(Assembly.GetExecutingAssembly(), innerContainerBuilder);
 
-            CopyFromOneToAnother(outerContainer, innerContainerBuilder);
-            RegisterExtensions(outerContainer, innerContainerBuilder);
-            RegisterAssemblyTypes(Assembly.GetExecutingAssembly(), innerContainerBuilder);
 
-            
-            LogManager.LogFactory = new NLogFactory();
-         
+                LogManager.LogFactory = new NLogFactory();
 
-            
-            
-            IContainerAdapter adapter = new AutofacIocAdapter(innerContainerBuilder.Build());
-            container.Adapter = adapter;
-            
-            Plugins.Add(new AuthFeature(() => new AuthUserSession(), new IAuthProvider[] { container.Resolve<ISimpleCredentialStore>() }) { HtmlRedirect = null, IncludeAssignRoleServices = false });
+                innerContainerBuilder.RegisterModule<LogInjectionModule>();
+                innerContainerBuilder.RegisterModule(new ConfigurationSettingsReader());
+
+                IContainerAdapter adapter = new AutofacIocAdapter(innerContainerBuilder.Build(), container);
+                container.Adapter = adapter;
+
+                Plugins.Add(new AuthFeature(() => new AuthUserSession(),
+                    new IAuthProvider[] {container.Resolve<ISimpleCredentialStore>()})
+                {
+                    HtmlRedirect = null,
+                    IncludeAssignRoleServices = false
+                });
+            }
 
         }
 
@@ -60,10 +69,14 @@ namespace Outercurve.SigningApi
         private void RegisterAssemblyTypes(Assembly a, ContainerBuilder builder)
         {
             Type iDependencyType = typeof (IDependency);
-            builder.RegisterAssemblyTypes(a).Where(t => t.GetInterfaces().Contains(iDependencyType));
+            builder.RegisterAssemblyTypes(a).Where(t => t.GetInterfaces().Contains(iDependencyType)).AsImplementedInterfaces();
+
+
+            Type iTransientDependencyType = typeof(ITransientDependency);
+            builder.RegisterAssemblyTypes(a).Where(t => t.GetInterfaces().Contains(iTransientDependencyType)).AsImplementedInterfaces().InstancePerLifetimeScope();
         }
 
-        private void RegisterExtensions(IContainer outerContainer, ContainerBuilder builder)
+        private void RegisterExtensions(ILifetimeScope outerContainer, ContainerBuilder builder)
         {
             var loader = outerContainer.Resolve<IModuleLoader>();
             foreach (var assembly in loader.GetAssembliesInModules())

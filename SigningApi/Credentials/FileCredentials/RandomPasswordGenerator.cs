@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Outercurve.SigningApi
+namespace Outercurve.SigningApi.Credentials.FileCredentials
 {
     public class RandomPasswordGenerator
     {

@@ -1,5 +1,5 @@
 ﻿using System.Management.Automation;
-using ClrPlus.Core.Extensions;
+
 
 namespace Outercurve.Cmdlets.Commands
 {

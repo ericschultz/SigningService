@@ -73,16 +73,23 @@
   <ItemGroup>
     <Compile Include="AzureClientBase.cs" />
     <Compile Include="Flags\MoveFileFlags.cs" />
+    <Compile Include="IAuthenticodeCertificateWrapper.cs" />
     <Compile Include="IAzureClient.cs" />
     <Compile Include="ICertificateService.cs" />
     <Compile Include="IDependency.cs" />
     <Compile Include="IFs.cs" />
     <Compile Include="IFsService.cs" />
+    <Compile Include="IJobScheduler.cs" />
     <Compile Include="ILoggingService.cs" />
     <Compile Include="IModuleLoader.cs" />
+    <Compile Include="IOPCSigner.cs" />
+    <Compile Include="ISigningJobCreator.cs" />
     <Compile Include="ISimpleCredentialStore.cs" />
+    <Compile Include="IStrongNameCertificateWrapper.cs" />
     <Compile Include="ITransientDependency.cs" />
+    <Compile Include="Job.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="INativeWindowsSigner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

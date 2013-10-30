@@ -9,12 +9,14 @@ using ServiceStack.ServiceInterface.Auth;
 
 namespace SigningServiceBase
 {
-    public interface ISimpleCredentialStore : IAuthProvider, IDependency
+    public interface ISimpleCredentialStore : IAuthProvider, ITransientDependency
     {
         void OnAuthenticated(IServiceBase authService, IAuthSession session, IOAuthTokens tokens, Dictionary<string, string> authInfo);
 
         bool TryAuthenticate(IServiceBase authService, string username, string password);
+        
         string CreateUser(string userName);
+        /*
         void UnsetRoles(string userName, params string[] roles);
         IEnumerable<string> GetRoles(string userName);
         bool SetRoles(string userName, params string[] roles);
@@ -33,6 +35,6 @@ namespace SigningServiceBase
         bool SetPassword(string userName, string newPassword);
 
         void Initialize(string userName, string password);
-
+        */
     }
 }

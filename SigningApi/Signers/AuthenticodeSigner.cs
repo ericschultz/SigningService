@@ -1,5 +1,9 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
+﻿using System;
+using System.Runtime.ConstrainedExecution;
+using System.Security.Cryptography.X509Certificates;
+using Autofac;
+using Funq;
+using Outercurve.SigningApi.WinApi;
 using ServiceStack.Logging;
 using SigningServiceBase;
 
@@ -7,14 +11,23 @@ namespace Outercurve.SigningApi.Signers
 {
     
 
-    public class AuthenticodeSigner : IDependency
+    public class AuthenticodeSigner : INativeWindowsSigner
     {
+        private readonly IFs _fs;
         private readonly ILoggingService _loggingService;
-      
+        private readonly IAuthenticodeCertificateWrapper _certificateWrapper;
 
-        public AuthenticodeSigner(X509Certificate2 certificate, ILoggingService log) {
+       
+
+
+        public AuthenticodeSigner(IFs fs, X509Certificate2 certificate, ILoggingService log, IAuthenticodeCertificateWrapper certificateWrapper) {
             Certificate = certificate;
+            _fs = fs;
             _loggingService = log;
+            _certificateWrapper = certificateWrapper;
+           
+           
+           
         }
         public X509Certificate2 Certificate {get; private set;}
 
@@ -46,7 +59,10 @@ namespace Outercurve.SigningApi.Signers
                     }
 
                     _loggingService.Debug("Signing {0} with {1}".format(path, Certificate.SerialNumber));
-                    AuthenticodeCertificateWrapper.SignUsingDefaultTimeStampUrls(path, Certificate, _loggingService);
+            
+                    SignUsingDefaultTimeStampUrls(path, Certificate);
+
+                    
                     _loggingService.Debug("Finished signing {0} with {1}".format(path, Certificate.SerialNumber));
 /*
                     r = BinaryLoad(path);
@@ -79,5 +95,52 @@ namespace Outercurve.SigningApi.Signers
                 }
             }*/
         }
+
+
+        public void SignUsingDefaultTimeStampUrls(string filename, X509Certificate2 cert)
+        {
+            _fs.TryHardToMakeFileWriteable(filename);
+
+            var urls = new[] {
+                "http://timestamp.verisign.com/scripts/timstamp.dll", "http://timestamp.comodoca.com/authenticode", "http://www.startssl.com/timestamp", "http://timestamp.globalsign.com/scripts/timstamp.dll", "http://time.certum.pl/"
+            };
+
+            var signedOk = false;
+            // try up to three times each url if we get a timestamp error
+            for (var i = 0; i < urls.Length * 3; i++)
+            {
+                var url = urls[i % urls.Length];
+                try
+                {
+                    
+
+                    if (_loggingService != null)
+                        _loggingService.Debug("Going to sign and timestamp with {0} for {1}".format(url, filename));
+                    _certificateWrapper.Sign(filename, urls[i % urls.Length]);
+                    if (_loggingService != null)
+                        _loggingService.Debug("Sign and timestamp worked with {0} for {1}".format(url, filename));
+                    // whee it worked!
+                    signedOk = true;
+                    break;
+                    
+
+
+                }
+                catch (FailedTimestampException)
+                {
+                    if (_loggingService != null)
+                        _loggingService.Debug("Failed sign and timestamp with {0} for {1}".format(url, filename));
+                    continue;
+                }
+            }
+
+            if (!signedOk)
+            {
+                // we went thru each one 3 times, and it never signed?
+                throw new FailedTimestampException(filename, "All of them!");
+            }
+        }
     }
+
+   
 }

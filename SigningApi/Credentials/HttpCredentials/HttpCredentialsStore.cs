@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
-using ServiceStack.ServiceHost;
 using ServiceStack.ServiceInterface;
 using ServiceStack.ServiceInterface.Auth;
 using SigningServiceBase;
 
-namespace Outercurve.HttpCredentials
+namespace Outercurve.SigningApi.Credentials.HttpCredentials
 {
     public class HttpCredentialsStore : BasicAuthProvider, ISimpleCredentialStore
     {
@@ -21,13 +18,13 @@ namespace Outercurve.HttpCredentials
             _baseUrl = baseUrl;
         }
 
-        public void OnAuthenticated(IServiceBase authService, IAuthSession session, IOAuthTokens tokens, Dictionary<string, string> authInfo)
+        public override void OnAuthenticated(IServiceBase authService, IAuthSession session, IOAuthTokens tokens, Dictionary<string, string> authInfo)
         {
             session.IsAuthenticated = true;
             authService.SaveSession(session);
         }
 
-        public bool TryAuthenticate(IServiceBase authService, string username, string password)
+        public override bool TryAuthenticate(IServiceBase authService, string username, string password)
         {
 
             return TryAuthenticate(username, password).Result;
@@ -107,6 +104,12 @@ namespace Outercurve.HttpCredentials
         public void Initialize(string userName, string password)
         {
             //no-op
+        }
+
+
+        public bool RemoveUser(string userName)
+        {
+            throw new NotImplementedException();
         }
     }
 }

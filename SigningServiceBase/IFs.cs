@@ -8,11 +8,19 @@ using SigningServiceBase.Flags;
 
 namespace SigningServiceBase
 {
-    public interface IFs : IDependency
+    public interface IFs : IDependency, IDisposable
     {
+       
+        string TempPath { get; }
         IFileSystem FileSystem { get; }
+        void ResetTempFolder();
         void MoveFileEx(string oldFilename, string newFilename, MoveFileFlags moveFlags);
         void TryHardToMakeFileWriteable(string filename);
         void TryHardToDelete(string location);
+        string GenerateTemporaryFilename(string filename);
+        string MarkFileTemporary(string filename);
+        void RemoveTemporaryFiles();
+        string NormalizePath( string path);
+        string CreateTempPath(string fileName);
     }
 }

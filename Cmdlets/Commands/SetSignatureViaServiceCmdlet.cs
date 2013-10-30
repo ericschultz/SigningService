@@ -5,8 +5,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
-using ClrPlus.Core.Extensions;
-using ClrPlus.Powershell.Core;
+
 using Outercurve.ClientLib;
 using Outercurve.ClientLib.Services;
 

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ClrPlus.Core.Extensions;
+
 using Outercurve.ClientLib.Messages;
+using Outercurve.DTO;
 using Outercurve.DTO.Services.Azure;
 
 namespace Outercurve.ClientLib.Services

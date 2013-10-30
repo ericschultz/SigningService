@@ -6,7 +6,7 @@ namespace Outercurve.SigningApi.Azure.Sample
 {
     public class SampleAzureClient : AzureClientBase
     {
-        public SampleAzureClient(IFileSystem fs) : base(fs)
+        public SampleAzureClient(IFs fs) : base(fs)
         {
             Root = AzureService.UseStorageEmulator();
         }

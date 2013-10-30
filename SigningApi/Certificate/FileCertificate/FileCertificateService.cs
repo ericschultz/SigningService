@@ -4,7 +4,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Web;
-using ClrPlus.Powershell.Provider.Utility;
+
 using SigningServiceBase;
 
 namespace Outercurve.SigningApi.Certificate.FileCertificate

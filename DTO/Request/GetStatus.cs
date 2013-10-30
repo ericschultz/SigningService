@@ -10,7 +10,8 @@ namespace Outercurve.DTO.Request
 {
     [Route("/get-status")]
     [Authenticate]
-    [RequiredRole("signers", ApplyTo = ApplyTo.All)]
+    [RequiredPermission(ApplyTo.All, "AuthenticodeSign")]
+    
     public class GetStatus : BaseRequest<GetStatusResponse>
     {
         public string Container { get; set; }

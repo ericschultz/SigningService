@@ -1,35 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Services.Client;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
-using ClrPlus.Scripting.Languages.PropertySheet;
+using Outercurve.SigningApi.Credentials.FileCredentials.Store;
 using ServiceStack.ServiceInterface;
 using ServiceStack.ServiceInterface.Auth;
+using ServiceStack.Text;
 using SigningServiceBase;
 
-namespace Outercurve.FileCredentials
+namespace Outercurve.SigningApi.Credentials.FileCredentials
 {
+    
     public class FileCredentialsStore : BasicAuthProvider, ISimpleCredentialStore
     {
-        private readonly HttpServerUtilityBase _serverBase;
+        private readonly ILoggingService _log;
+        private readonly IFs _fs;
         public const int DEFAULT_PASS_LENGTH = 16;
 
         private readonly object _lock = new object();
+        private readonly string _filePath;
+        private readonly JsonCredentialStore _store;
 
-        public FileCredentialsStore(HttpServerUtilityBase serverBase)
+
+        public FileCredentialsStore(HttpServerUtilityBase serverBase, IFs fs, ILoggingService log, string path)
         {
-            _serverBase = serverBase;
+            _fs = fs;
+            _log = log;
+            _filePath = path;
+            if (path.StartsWith("~"))
+            {
+                _filePath = serverBase.MapPath(path);
+            }
+            
+            if (!fs.FileSystem.File.Exists(_filePath))
+            {
+                fs.FileSystem.File.WriteAllText(_filePath, "{}");
+            }
+
+            using (var file = fs.FileSystem.File.OpenRead(_filePath))
+            {
+                _store = JsonSerializer.DeserializeFromStream<JsonCredentialStore>(file);
+            }
+            
         }
 
         public override void OnAuthenticated(IServiceBase authService, IAuthSession session, IOAuthTokens tokens, Dictionary<string, string> authInfo)
         {
             lock (_lock)
             {
-                var user = GetUserRule(session.UserAuthName);
+                var user = GetUser(session.UserAuthName); 
 
                 if (user == null)
                 {
@@ -38,22 +61,12 @@ namespace Outercurve.FileCredentials
 
                 session.IsAuthenticated = true;
                 //Fill the IAuthSession with data which you want to retrieve in the app eg:
-                session.FirstName = user.HasProperty("firstname") ? user["firstname"].Value : "";
-                session.LastName = user.HasProperty("lastname") ? user["lastname"].Value : "";
+                
 
-                session.Roles = new XList<string>();
+                session.Permissions = new List<string>(user.Permissions);
 
-                // check to see if user has an unsalted password
-                var storedPassword = user["password"].Value;
-                /*  if (storedPassword.Length != 32)
-                  {
-                      session.Roles.Add("password_must_be_changed");
-                  }*/
-
-                if (user.HasProperty("roles"))
-                {
-                    session.Roles.AddRange(user["roles"].Values);
-                }
+             
+               
 
                 //Important: You need to save the session!
                 authService.SaveSession(session, SessionExpiry);
@@ -70,25 +83,24 @@ namespace Outercurve.FileCredentials
             }
             lock (_lock)
             {
-                var user = GetUserRule(userName);
+                var user = GetUser(userName);
 
                 if (user == null)
                 {
                     return false;
                 }
 
-                var storedPassword = user["password"].Value;
+                var storedPassword = user.HashedPass;
 
-                if (storedPassword.Length == 32)
+                
+
+                var pwd = HashPassword(password);
+                if (pwd == storedPassword)
                 {
-
-                    var pwd = HashPassword(password);
-                    if (pwd == storedPassword)
-                    {
-                        _log.StartAuthenticate(userName, password, true);
-                        return true;
-                    }
+                    _log.StartAuthenticate(userName, password, true);
+                    return true;
                 }
+                
 
                 /*   if (storedPassword == password)
                    {
@@ -101,19 +113,25 @@ namespace Outercurve.FileCredentials
             }
         }
 
+        private User GetUser(string name)
+        {
+            return _store.Users.FirstOrDefault(u => u.Username == name);
+        }
+
+        //add salt!!!
            private string HashPassword(string password)
             {
                 using (var hasher = MD5.Create())
                 {
                     return
-                        hasher.ComputeHash(Encoding.Unicode.GetBytes(AppHost.ServiceName + password))
+                        hasher.ComputeHash(Encoding.Unicode.GetBytes( password))
                               .Aggregate(String.Empty, (current, b) => current + b.ToString("x2").ToUpper());
                 }
             }
 
             public string CreateUser(string userName)
             {
-
+                
 
 
                 var password = RandomPasswordGenerator.GeneratePassword(DEFAULT_PASS_LENGTH);
@@ -124,116 +142,19 @@ namespace Outercurve.FileCredentials
                 return null;
             }
 
-            public void UnsetRoles(string userName, params string[] roles)
+
+
+
+
+            private void Save()
             {
-                lock (_lock)
+                using (var file = _fs.FileSystem.File.Open(_filePath, FileMode.Create))
                 {
-                    var path = UserPropertySheetPath;
-
-                    if (path != null)
-                    {
-                        var propertySheet = UserPropertySheet;
-
-                        var user =
-                            propertySheet.Rules.FirstOrDefault(rule => rule.Name == "user" && rule.Parameter == userName);
-
-                        RemoveRolesFromUser(user, roles);
-                    }
+                    JsonSerializer.SerializeToStream(_store, file);
                 }
             }
 
-            public IEnumerable<string> GetRoles(string userName)
-            {
-                lock (_lock)
-                {
-                    var path = UserPropertySheetPath;
-
-                    if (path != null)
-                    {
-                        var propertySheet = UserPropertySheet;
-
-                        var user =
-                            propertySheet.Rules.FirstOrDefault(rule => rule.Name == "user" && rule.Parameter == userName);
-
-
-                        if (user == null)
-                        {
-
-                            //user doesn't exists!
-                            return null;
-                        }
-
-                        return GetRolesPV(user).Values;
-                    }
-
-                }
-
-                return null;
-            }
-
-            public bool SetRoles(string userName, params string[] roles)
-            {
-                lock (_lock)
-                {
-                    var path = UserPropertySheetPath;
-
-                    if (path != null)
-                    {
-                        var propertySheet = UserPropertySheet;
-
-                        var user =
-                            propertySheet.Rules.FirstOrDefault(rule => rule.Name == "user" && rule.Parameter == userName);
-
-
-                        if (user == null)
-                        {
-
-                            //user doesn't exists!
-                            return false;
-                        }
-                        
-
-                        SetRolesToUser(user, roles);
-
-                        propertySheet.Save(path);
-                        return true;
-                    }
-
-                }
-                return false;
-            }
-
-
-            public void Initialize(string userName, string password)
-            {
-                lock (_lock)
-                {
-                    var path = UserPropertySheetPath;
-
-                    if (path != null)
-                    {
-                        var propertySheet = UserPropertySheet;
-
-                        var anyUsers =
-                            propertySheet.Rules.Any(rule => rule.Name == "user");
-                        if (!anyUsers)
-                        {
-                           if (CreateUserWithPassword(userName, password))
-                           {
-                               SetRoles(userName, "admins");
-                               return;
-                           }
-                           else
-                           {
-                               throw new Exception("Can't set user for some reason");
-                           }
-                            
-
-                        }
-                        throw new Exception("System is already initialized");
-                    }
-                }
-            }
+            
 
 
             /// <summary>
@@ -246,13 +167,12 @@ namespace Outercurve.FileCredentials
             {
                 lock (_lock)
                 {
-                    var path = UserPropertySheetPath;
 
-                    if (path != null)
-                    {
-                        var propertySheet = UserPropertySheet;
-                        var user =
-                            propertySheet.Rules.FirstOrDefault(rule => rule.Name == "user" && rule.Parameter == userName);
+
+
+
+                    var user =
+                        GetUser(userName);
 
                         
                         if (user != null)
@@ -262,22 +182,24 @@ namespace Outercurve.FileCredentials
                             return false;
                         }
 
+                    user = new User {Username = userName, HashedPass = HashPassword(password)};
 
-                        user = propertySheet.AddRule("user", userName);
-                        var propRule = user.GetPropertyRule("password");
-                        var pv  = propRule.GetPropertyValue(string.Empty);
-                        pv.Add(HashPassword(password));
-                  
-                        propertySheet.Save(path);
+                    var list = new List<User>(_store.Users);
+                    list.Add(user);
+                    _store.Users = list.ToArray();
+
+                    Save();
 
                         
-                        return true;
+                   return true;
                         
-                    }
+                    
                 }
-                return false;
+        
 
             }
+
+#if false
 
             public string ResetPasswordAsAdmin(string userName)
             {
@@ -359,39 +281,9 @@ namespace Outercurve.FileCredentials
 
 
 
-            internal string UserPropertySheetPath
-            {
-                get
-                {
-                    
-                    var p = GetUserPathAppSettings();
-                    if (p != null)
-                    {
-                            
-                        p = _serverBase.MapPath(p);
-                        if (File.Exists(p))
-                        {
-                            return p;
-                        }
-                    }
-                    
-                    return null;
-                }
-            }
+  
 
-            internal PropertySheet UserPropertySheet
-            {
-                get
-                {
-                    var path = UserPropertySheetPath;
-                    if (!string.IsNullOrEmpty(path) && File.Exists(path))
-                    {
-                        return PropertySheet.Load(path);
-                    }
-                    // otherwise you get an empty propertySheet.
-                    return new PropertySheet();
-                }
-            }
+          
 
 
             private void SetRolesToUser(Rule user, IEnumerable<string> roles)
@@ -405,50 +297,16 @@ namespace Outercurve.FileCredentials
                 
             }
 
-            private PropertyValue GetRolesPV(Rule user)
-            {
-                var rolesRule = user.GetPropertyRule("roles");
-                return rolesRule.GetPropertyValue(string.Empty);
-            }
+          
 
-            private void RemoveRolesFromUser(Rule user, IEnumerable<string> roles)
-            {
-                var rolesRule = user.GetPropertyRule("roles");
-                var rolesVal = rolesRule.GetPropertyValue(string.Empty);
-               
+        
+          
 
-                var origRoles = rolesVal.Values.ToList();
-                SetPropertyValues( rolesVal, origRoles.Except(roles.Select(s => s.ToLowerInvariant())).ToArray());
-            }
 
-            private void SetPropertyValues(PropertyValue pv, IEnumerable<string> values)
-            {
-               pv.Clear();
-                
-                foreach (var v in values)
-                {
-                    pv.Add(v);
-                }
-            }
 
-            internal IEnumerable<Rule> UserRules
-            {
-                get
-                {
-                    return UserPropertySheet.Rules.Where(rule => rule.Name == "user");
-                }
-            }
+           
 
-            private Rule GetUserRule(string name)
-            {
-                return UserRules.FirstOrDefault(rule => rule.Parameter == name);
-            }
-
-            private string GetUserPathAppSettings()
-            {
-                var a = _settings.GetString("Users");
-                return a;
-            }
+           
 
             internal bool RemoveUser(string userName)
             {
@@ -481,6 +339,7 @@ namespace Outercurve.FileCredentials
 
                 return false;
             }
+#endif
         }
-    
+
 }

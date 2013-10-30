@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using ClrPlus.Core.Extensions;
+
 using Microsoft.WindowsAzure.Storage.Blob;
 using Outercurve.DTO.Request;
 using Outercurve.DTO.Response;
@@ -23,6 +23,8 @@ namespace Outercurve.SigningApi
        
         private readonly List<String> Errors = new List<string>();
         private readonly IAzureClient _azureClient;
+        private readonly IFileSystem _fs;
+        private readonly ICertificateService _certs;
 
         private readonly ISimpleCredentialStore _credentialStore;
         private readonly LoggingService _log;
@@ -35,6 +37,8 @@ namespace Outercurve.SigningApi
         {
             _azure = azureClient.GetRoot();
             _azureClient = azureClient;
+            _fs = fs;
+            _certs = certs;
             _credentialStore = credentialStore;
             _log = log;
             _jobScheduler = jobScheduler;
@@ -97,40 +101,9 @@ namespace Outercurve.SigningApi
             }
         }
 
-        public BaseResponse Post(SetRolesRequest request)
-        {
-            _log.StartLog(request);
-            try
-            {
-                _credentialStore.SetRoles(request.UserName, request.Roles.ToArray());
-                return new BaseResponse();
-            }
-            catch (Exception e)
-            {
-                _log.Fatal("error", e);
-                Errors.Add(e.Message + " " + e.StackTrace);
-                return new BaseResponse { Errors = Errors };
-            }
-                
+      
 
-        }
-
-
-        public GetRolesResponse Post(GetRolesAsAdminRequest request)
-        {
-            _log.StartLog(request);
-            try
-            {
-                var roles = _credentialStore.GetRoles(request.UserName);
-                return new GetRolesResponse {Roles = roles.ToList()};
-            }
-            catch (Exception e)
-            {
-                _log.Fatal("error", e );
-                Errors.Add(e.Message + " " + e.StackTrace);
-                return new GetRolesResponse {Errors = Errors};
-            }
-        }
+     
 
         public GetStatusResponse Post(GetStatus request)
         {
@@ -155,6 +128,41 @@ namespace Outercurve.SigningApi
                 return new GetStatusResponse { Errors = Errors };
             }
         }
+#if false
+        public BaseResponse Post(SetRolesRequest request)
+        {
+            _log.StartLog(request);
+            try
+            {
+                _credentialStore.SetRoles(request.UserName, request.Roles.ToArray());
+                return new BaseResponse();
+            }
+            catch (Exception e)
+            {
+                _log.Fatal("error", e);
+                Errors.Add(e.Message + " " + e.StackTrace);
+                return new BaseResponse { Errors = Errors };
+            }
+
+
+        }
+
+
+        public GetRolesResponse Post(GetRolesAsAdminRequest request)
+        {
+            _log.StartLog(request);
+            try
+            {
+                var roles = _credentialStore.GetRoles(request.UserName);
+                return new GetRolesResponse { Roles = roles.ToList() };
+            }
+            catch (Exception e)
+            {
+                _log.Fatal("error", e);
+                Errors.Add(e.Message + " " + e.StackTrace);
+                return new GetRolesResponse { Errors = Errors };
+            }
+        }
 
         public GetRolesResponse Post(GetRolesRequest request)
         {
@@ -172,6 +180,42 @@ namespace Outercurve.SigningApi
                 return new GetRolesResponse {Errors = Errors};
             }
         }
+
+        public CreateUserResponse Post(CreateUserRequest request)
+        {
+            _log.StartLog(request);
+            try
+            {
+                if (String.IsNullOrWhiteSpace(request.Password))
+                {
+                    var password = _credentialStore.CreateUser(request.Username);
+                    if (password != null)
+                    {
+                        return new CreateUserResponse { Password = password };
+                    }
+                    throw new Exception("User could not be created. May already be registered?");
+
+
+                }
+                else
+                {
+                    if (_credentialStore.CreateUserWithPassword(request.Username, request.Password))
+                    {
+                        return new CreateUserResponse();
+                    }
+
+                    throw new Exception("User could not be created. May already be registered?");
+
+                }
+            }
+            catch (Exception e)
+            {
+                _log.Fatal("error", e);
+                Errors.Add(e.Message + " " + e.StackTrace);
+                return new CreateUserResponse { Errors = Errors };
+            }
+        }
+
 
         public BaseResponse Post(UnsetRolesRequest request)
         {
@@ -238,40 +282,7 @@ namespace Outercurve.SigningApi
             }
         }
 
-        public CreateUserResponse Post(CreateUserRequest request)
-        {
-            _log.StartLog(request);
-            try
-            {
-                if (String.IsNullOrWhiteSpace(request.Password))
-                {
-                    var password = _credentialStore.CreateUser(request.Username);
-                    if (password != null)
-                    {
-                        return new CreateUserResponse {Password = password};
-                    }
-                        throw new Exception("User could not be created. May already be registered?");
-                    
-
-                }
-                else
-                {
-                   if (_credentialStore.CreateUserWithPassword(request.Username, request.Password))
-                   {
-                       return new CreateUserResponse();
-                   }
-
-                   throw new Exception("User could not be created. May already be registered?");
-                    
-                }
-            }
-            catch (Exception e)
-            {
-                _log.Fatal("error", e);
-                Errors.Add(e.Message + " " + e.StackTrace);
-                return new CreateUserResponse {Errors = Errors};
-            }
-        }
+        
 
         public BaseResponse Post(InitializeRequest request)
         {
@@ -290,7 +301,7 @@ namespace Outercurve.SigningApi
         }
 
 
+#endif
 
-        
     }
 }

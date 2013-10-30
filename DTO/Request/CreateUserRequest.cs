@@ -6,7 +6,7 @@ namespace Outercurve.DTO.Request
 {
     [Route("/create-user")]
     [Authenticate]
-    [RequiredRole("admins")]
+    [RequiredPermission(ApplyTo.All, "CreateUser")]
     public class CreateUserRequest : BaseRequest<CreateUserResponse>
     {
         public string Username { get; set; }

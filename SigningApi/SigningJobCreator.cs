@@ -12,18 +12,22 @@ using SigningServiceBase;
 
 namespace Outercurve.SigningApi
 {
-    public class SigningJobCreator :  IDependency
+    public class SigningJobCreator : ISigningJobCreator
     {
         private readonly IAzureClient _azureClient;
-        private readonly LoggingService _log;
+        private readonly ILoggingService _log;
         private readonly ICertificateService _certs;
+        private readonly INativeWindowsSigner _authenticode;
+        private readonly IOPCSigner _opc;
 
 
-        public SigningJobCreator(IAzureClient azureClient, LoggingService log, ICertificateService certs)
+        public SigningJobCreator(IAzureClient azureClient, ILoggingService log, ICertificateService certs, INativeWindowsSigner authenticode, IOPCSigner opc )
         {
             _azureClient = azureClient;
             _log = log;
             _certs = certs;
+            _authenticode = authenticode;
+            _opc = opc;
         }
 
         public Job CreateJob(string container, string path, bool strongName)
@@ -94,17 +98,15 @@ namespace Outercurve.SigningApi
             //_log.Debug(strongName);
             //_log.Debug(certificate);
 
-            var authenticode = new AuthenticodeSigner(certificate, _log);
-            AttemptToSign(() => authenticode.Sign(path, strongName));
+            
+            AttemptToSign(() => _authenticode.Sign(path, strongName));
 
         }
 
         private void AttemptToSignOPC(string path, X509Certificate2 certificate)
         {
 
-            var opc = new OPCSigner(certificate, _log);
-
-            AttemptToSign(() => opc.Sign(path, true));
+            AttemptToSign(() => _opc.Sign(path, true));
         }
 
         private void AttemptToSign(Action signAction)

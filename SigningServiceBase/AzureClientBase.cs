@@ -10,15 +10,15 @@ namespace SigningServiceBase
 {
     public abstract class AzureClientBase : IAzureClient
     {
-        private readonly IFileSystem _fs;
+        private readonly IFs _fs;
 
 
         protected IAzureService Root;
         
 
-        protected AzureClientBase(IFileSystem fs)
+        protected AzureClientBase(IFs fs)
         {
-            
+            _fs = fs;
         }
 
         public IAzureService GetRoot()
@@ -36,7 +36,7 @@ namespace SigningServiceBase
 
             using (var blobStream = blob.OpenRead())
             {
-                using (var tempFile = _fs.File.OpenWrite(temp))
+                using (var tempFile = _fs.FileSystem.File.OpenWrite(temp))
                 {
                     blobStream.CopyTo(tempFile);
                 }
@@ -49,7 +49,7 @@ namespace SigningServiceBase
         {
             var blob = GetBlob(container, file);
 
-            using (var fileStream = _fs.File.OpenRead(tempFile))
+            using (var fileStream = _fs.FileSystem.File.OpenRead(tempFile))
             {
                 blob.UploadTo(fileStream);
             }

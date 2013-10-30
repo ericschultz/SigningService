@@ -8,7 +8,7 @@ using SigningServiceBase;
 
 namespace Outercurve.SigningApi
 {
-    public class JobScheduler : IDisposable, IDependency
+    public class JobScheduler : IJobScheduler
     {
         readonly BlockingCollection<Job> _jobs = new BlockingCollection<Job>();
         private Task _jobsTask;

@@ -3,10 +3,11 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 using Outercurve.SigningApi.WinApi;
+using SigningServiceBase;
 
 namespace Outercurve.SigningApi
 {
-    public class StrongNameCertificateWrapper : IDisposable
+    public class StrongNameCertificateWrapper : IStrongNameCertificateWrapper
     {
       
         private string _keyContainer = null;
@@ -19,7 +20,7 @@ namespace Outercurve.SigningApi
 
             if (!Mscoree.StrongNameKeyInstall(_keyContainer, privateKey, privateKey.Length))
             {
-                throw new ClrPlusException("Unable to create KeyContainer");
+                throw new Exception("Unable to create KeyContainer");
             }
         }
 
@@ -27,7 +28,7 @@ namespace Outercurve.SigningApi
         {
             if (!Mscoree.StrongNameSignatureGeneration(fileName, _keyContainer, IntPtr.Zero, 0, 0, 0))
             {
-                throw new ClrPlusException(String.Format("Unable Strong name assembly '{0}'.",fileName));
+                throw new Exception(String.Format("Unable Strong name assembly '{0}'.", fileName));
             }
         }
 
@@ -40,4 +41,6 @@ namespace Outercurve.SigningApi
             }
         }
     }
+
+ 
 }

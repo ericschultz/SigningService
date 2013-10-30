@@ -18,20 +18,20 @@ namespace Outercurve.MSBuildTasks
     public class SetSignature : Task, ICancelableTask
     {
         private readonly IFileSystem _fileSystem;
-        private readonly IDefaultCredentialService _credentialService;
+       
 
         private CancellationTokenSource _source = new CancellationTokenSource();
 
-        public SetSignature(): this(new FileSystem(), new DefaultCredentialService()) 
+        public SetSignature() : this(new FileSystem()) 
         {
             
         }
        
 
-        internal SetSignature(IFileSystem fileSystem, IDefaultCredentialService credentialService)
+        internal SetSignature(IFileSystem fileSystem)
         {
             _fileSystem = fileSystem;
-            _credentialService = credentialService;
+           
         }
        
         /// <summary>
@@ -72,7 +72,10 @@ namespace Outercurve.MSBuildTasks
         /// the task will end with an error.
         /// </summary>
         public string Password { get; set; }
-        
+
+        [Output]
+        public ITaskItem[] SignedFiles { get; set; }
+
         public override bool Execute()
         {
             try
@@ -88,13 +91,16 @@ namespace Outercurve.MSBuildTasks
                                         sourcesToDestination, ServiceUrl,
                                         MessageHandler, ProgressHandler);
                 signer.Sign(StrongName, _source);
-                
+
+
+                SignedFiles = sourcesToDestination.Select(i => i.Destination).Select(i => new TaskItem(i.FullName)).Cast<ITaskItem>().ToArray();
             }
             catch (Exception e)
             {
                 Log.LogErrorFromException(e, true, true, null);
             }
 
+            
             return !Log.HasLoggedErrors;
 
         }
@@ -129,24 +135,18 @@ namespace Outercurve.MSBuildTasks
         {
             
             var fullOutputDir = _fileSystem.Path.GetFullPath(OutputDir);
-            var alloutputs = InputFiles.Select(i => Path.Combine(fullOutputDir.TrimEnd('/','\\'), i.ItemSpec.Trim('/','\\')));
-            var something  = alloutputs.ToArray();
-                
-            var allOutputs = something.Select(s => _fileSystem.FileInfo.FromFileName(s)).ToArray();
-            return allOutputs.Select(i => new SourceToDestinationMap<FileInfoBase> {Source = i, Destination = i});
+            return InputFiles.Select(i =>
+                new SourceToDestinationMap<FileInfoBase>
+                {
+                    Source = _fileSystem.FileInfo.FromFileName(i.ItemSpec.Trim('/', '\\')),
+                    Destination = _fileSystem.FileInfo.FromFileName(_fileSystem.Path.Combine(fullOutputDir.TrimEnd('/', '\\'), i.ItemSpec.Trim('/', '\\')))
+                });
            
 
         }
 
         private void SetCredentials()
         {
-            if (String.IsNullOrEmpty(UserName) || String.IsNullOrEmpty(Password) || String.IsNullOrEmpty(ServiceUrl))
-            {
-                var cred = _credentialService.GetCredential();
-                UserName = cred.UserName;
-                Password = cred.Password;
-                ServiceUrl = _credentialService.GetUri();
-            }
 
             var exceptions = new List<Exception>();
             if (String.IsNullOrEmpty(UserName))
@@ -167,8 +167,6 @@ namespace Outercurve.MSBuildTasks
             {
                 throw new AggregateException(exceptions);
             }
-            
-           
         }
     }
 }

@@ -2,35 +2,29 @@
 using System.IO.Packaging;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using ClrPlus.Core.Extensions;
+using SigningServiceBase;
 
 namespace Outercurve.SigningApi.Signers
 {
-    public class OPCSigner 
+    public class OPCSigner : IOPCSigner
     {
         public OPCSigner(X509Certificate2 certificate, LoggingService log) {
             Certificate = certificate;
             _log = log;
         }
 
-        private LoggingService _log;
+        private readonly LoggingService _log;
 
         public X509Certificate2 Certificate {get; private set;}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="overrideCurrentSignature"></param>
-        /// <from>http://msdn.microsoft.com/en-us/library/system.io.packaging.packagedigitalsignaturemanager.sign(v=vs.100).aspx</from>
         public void Sign(string path, bool overrideCurrentSignature)
         {
             {
-                _log.Debug("We're going to try signing {0}, override current signature {1}".format(path,
+                _log.Debug(String.Format("We're going to try signing {0}, override current signature {1}", path,
                                                                                                    overrideCurrentSignature));
                 var package = Package.Open(path);
 
-                _log.Debug("Opened {0}".format(path));
+                _log.Debug(String.Format("Opened {0}",path));
                 var signatureManager = new PackageDigitalSignatureManager(package)
                     {
                         CertificateOption = CertificateEmbeddingOption.InSignaturePart
@@ -58,14 +52,16 @@ namespace Outercurve.SigningApi.Signers
                 toSign.Add(signatureManager.SignatureOrigin);
                 toSign.Add(PackUriHelper.GetRelationshipPartUri(new Uri("/", UriKind.RelativeOrAbsolute)));
 
-                _log.Debug("About to start signing {0}".format(path));
+                _log.Debug(String.Format("About to start signing {0}",path));
                 signatureManager.Sign(toSign, Certificate);
-                _log.Debug("signed {0}, going to close".format(path));
+                _log.Debug(String.Format("signed {0}, going to close",path));
                 package.Close();
 
-                _log.Debug("closed {0}".format(path));
+                _log.Debug(String.Format("closed {0}", path));
             }
             GC.Collect();
         }
     }
+
+   
 }

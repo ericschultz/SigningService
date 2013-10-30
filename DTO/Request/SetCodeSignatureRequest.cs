@@ -6,10 +6,9 @@ namespace Outercurve.DTO.Request
 {
     [Route("/set-codesignature")]
     [Authenticate]
-    [RequiredRole("signers", ApplyTo = ApplyTo.All)]
+    [RequiredPermission(ApplyTo.All, "AuthenticodeSign")]
     public class SetCodeSignatureRequest : BaseRequest<SetCodeSignatureResponse>
     {
-        
         public string Container { get; set; }
         public string Path { get; set; }
         public bool StrongName { get; set; }

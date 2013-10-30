@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Autofac;
+using Autofac.Integration.Mvc;
+using Funq;
 using ServiceStack.Configuration;
 
 namespace Outercurve.SigningApi
@@ -10,31 +12,47 @@ namespace Outercurve.SigningApi
     /// <summary>
     /// 
     /// </summary>
-    /// <from>https://github.com/ServiceStack/ServiceStack/wiki/The-IoC-container</from>
+    /// <from>http://stackoverflow.com/questions/14835471/configuring-lifetime-scopes-in-autofac-when-used-as-servicestacks-ioc</from>
     public class AutofacIocAdapter : IContainerAdapter
     {
-        private readonly IContainer _container;
+        private readonly IContainer _autofacRootContainer;
+        private readonly Container _funqContainer;
 
-        public AutofacIocAdapter(IContainer container)
+        public AutofacIocAdapter(IContainer autofacRootContainer, Container funqContainer)
         {
-            _container = container;
+            // Register a RequestLifetimeScopeProvider (from Autofac.Integration.Mvc) with Funq
+            var lifetimeScopeProvider = new RequestLifetimeScopeProvider(autofacRootContainer);
+            funqContainer.Register<ILifetimeScopeProvider>(x => lifetimeScopeProvider);
+            // Store the autofac application (root) container, and the funq container for later use
+            _autofacRootContainer = autofacRootContainer;
+            _funqContainer = funqContainer;
         }
 
         public T Resolve<T>()
         {
-            return _container.Resolve<T>();
+            return ActiveScope.Resolve<T>();
         }
 
         public T TryResolve<T>()
         {
             T result;
-
-            if (_container.TryResolve<T>(out result))
+            if (ActiveScope.TryResolve(out result))
             {
                 return result;
             }
-
             return default(T);
+        }
+
+        private ILifetimeScope ActiveScope
+        {
+            get
+            {
+                // If there is an active HttpContext, retrieve the lifetime scope by resolving
+                // the ILifetimeScopeProvider from Funq.  Otherwise, use the application (root) container.
+                return HttpContext.Current == null
+                    ? _autofacRootContainer
+                    : _funqContainer.Resolve<ILifetimeScopeProvider>().GetLifetimeScope(x => new ContainerBuilder());
+            }
         }
     }
 }

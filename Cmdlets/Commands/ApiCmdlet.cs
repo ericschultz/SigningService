@@ -1,7 +1,7 @@
 using System;
 using System.Management.Automation;
 using System.Net;
-using ClrPlus.Core.Extensions;
+
 using Outercurve.ClientLib.Messages;
 using Outercurve.ClientLib.Services;
 

@@ -1,9 +1,6 @@
-﻿using ClrPlus.Core.Configuration;
-using ClrPlus.Core.Extensions;
-
-namespace Outercurve.ClientLib.Services
+﻿namespace Outercurve.ClientLib.Services
 {
-    
+    #if false
     public class DefaultCredentialService : IDefaultCredentialService
     {
         private const string REGISTRY_KEY_NAME = "Outercurve";
@@ -79,4 +76,5 @@ namespace Outercurve.ClientLib.Services
         public string Password { get; private set; }
         
     }
+#endif
 }

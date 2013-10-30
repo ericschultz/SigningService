@@ -9,7 +9,7 @@ using SigningServiceBase;
 
 namespace Outercurve.SigningApi
 {
-    public class AuthenticodeCertificateWrapper : ITransientDependency, IDisposable
+    public class AuthenticodeCertificateWrapper : IAuthenticodeCertificateWrapper
     {
         private IntPtr _digitalSignInfo = IntPtr.Zero;
         private IntPtr _signContext = IntPtr.Zero;
@@ -30,6 +30,8 @@ namespace Outercurve.SigningApi
             var digitalSignInfo = new DigitalSignInfo();
             digitalSignInfo.dwSize = Marshal.SizeOf(digitalSignInfo);
             digitalSignInfo.dwSubjectChoice = DigitalSignSubjectChoice.Blob;
+
+            throw new NotImplementedException();
         }
 
         public void Sign(string fileName, string timeStampUrl)

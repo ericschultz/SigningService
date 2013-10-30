@@ -7,7 +7,7 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using System.Text;
-using ClrPlus.Powershell.Core;
+
 
 namespace Outercurve.Cmdlets.Commands
 {

@@ -41,7 +41,7 @@ namespace Outercurve.ClientLib.Services
             ThrowErrors(r.Errors);
             
         }
-
+        /*
         public IEnumerable<string> GetRolesAsAdmin(string user)
         {
             var r = Client.Post(new GetRolesAsAdminRequest {UserName = user});
@@ -86,6 +86,6 @@ namespace Outercurve.ClientLib.Services
         {
             var r = Client.Post(new InitializeRequest { UserName = userName, Password =  password});
             ThrowErrors(r.Errors);
-        }
+        }*/
     }
 }

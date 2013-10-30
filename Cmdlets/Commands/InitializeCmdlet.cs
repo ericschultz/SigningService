@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Text;
-using ClrPlus.Core.Extensions;
-using ClrPlus.Powershell.Core;
+
 using Outercurve.ClientLib.Services;
 
 namespace Outercurve.Cmdlets.Commands

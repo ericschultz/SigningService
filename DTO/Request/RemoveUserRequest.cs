@@ -6,7 +6,7 @@ namespace Outercurve.DTO.Request
 {
     [Route("/remove-user")]
     [Authenticate]
-    [RequiredRole("admins")]
+    [RequiredPermission(ApplyTo.All, "RemoveUser")]
     public class RemoveUserRequest : BaseRequest<BaseResponse>
     {
         public string UserName { get; set; }

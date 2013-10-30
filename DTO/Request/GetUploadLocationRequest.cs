@@ -6,7 +6,7 @@ namespace Outercurve.DTO.Request
 {
     [Route("/get-uploadlocation")]
     [Authenticate]
-    [RequiredRole("signers", ApplyTo = ApplyTo.All)]
+    [RequiredPermission(ApplyTo.All, "AuthenticodeSign")]
     public class GetUploadLocationRequest : BaseRequest<GetUploadLocationResponse>
     {
     }

@@ -13,7 +13,7 @@ namespace Outercurve.SigningApi
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<FileSystem>().As<IFileSystem>();
+            builder.RegisterType<System.IO.Abstractions.FileSystem>().As<IFileSystem>();
             builder.RegisterModule(new AutofacWebTypesModule());
             builder.RegisterType<DefaultModulesLoader>().As<IModuleLoader>();
         }
