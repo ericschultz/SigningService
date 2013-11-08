@@ -68,11 +68,11 @@ namespace Outercurve.SigningApi
 
         private void RegisterAssemblyTypes(Assembly a, ContainerBuilder builder)
         {
-            Type iDependencyType = typeof (IDependency);
-            builder.RegisterAssemblyTypes(a).Where(t => t.GetInterfaces().Contains(iDependencyType)).AsImplementedInterfaces();
+            var iDependencyType = new[] {typeof (IDependency), typeof (ITransientDependency)};
+            builder.RegisterAssemblyTypes(a).Where(t => t.GetInterfaces().n.Contains(iDependencyType) |).AsImplementedInterfaces();
 
 
-            Type iTransientDependencyType = typeof(ITransientDependency);
+            Type iTransientDependencyType = ;
             builder.RegisterAssemblyTypes(a).Where(t => t.GetInterfaces().Contains(iTransientDependencyType)).AsImplementedInterfaces().InstancePerLifetimeScope();
         }
 

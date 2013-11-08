@@ -34,6 +34,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SigningServiceBase", "SigningServiceBase\SigningServiceBase.csproj", "{BF3A0D22-FB23-452C-93A3-8F97898D6A4F}"
 EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "SigningCloudService", "SigningCloudService\SigningCloudService.ccproj", "{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SigningWorker", "SigningWorker\SigningWorker.csproj", "{765119BD-7C5C-477F-A583-4B3D268FEAFD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -134,6 +138,26 @@ Global
 		{BF3A0D22-FB23-452C-93A3-8F97898D6A4F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{BF3A0D22-FB23-452C-93A3-8F97898D6A4F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BF3A0D22-FB23-452C-93A3-8F97898D6A4F}.Release|x86.ActiveCfg = Release|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{25A6C16D-199B-45A9-8C44-C71DDF4F67FA}.Release|x86.ActiveCfg = Release|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{765119BD-7C5C-477F-A583-4B3D268FEAFD}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

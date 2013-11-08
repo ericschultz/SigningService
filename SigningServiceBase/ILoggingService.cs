@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SigningServiceBase
 {
-    public interface ILoggingService : IDependency
+    public interface ILoggingService : ITransientDependency
     {
         void StartLog(object request, [CallerMemberName] string memberName = "",
             [CallerFilePath] string sourceFilePath = "",

@@ -7,7 +7,7 @@ using Outercurve.DTO.Services.Azure;
 
 namespace SigningServiceBase
 {
-    public interface IAzureClient : IDependency
+    public interface IAzureClient : ITransientDependency
     {
         IAzureService GetRoot();
         string CopyFileToTemp(string container, string file);

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SigningServiceBase
 {
-    public interface ICertificateService : IDependency
+    public interface ICertificateService : ITransientDependency
     {
         X509Certificate2 Get();
     }

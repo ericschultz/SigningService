@@ -7,7 +7,7 @@ namespace Outercurve.Cmdlets.Commands
     [Cmdlet(VerbsCommon.Set, "OcfDefaultRemoteService")]
     public class SetDefaultRemoteServiceCmdlet : Cmdlet
     {
-        private readonly IDefaultCredentialService _credentialsService;
+       
 
         public SetDefaultRemoteServiceCmdlet()
         {

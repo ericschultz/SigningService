@@ -28,12 +28,12 @@ namespace Outercurve.SigningApi
 
         private readonly ISimpleCredentialStore _credentialStore;
         private readonly LoggingService _log;
-        private readonly JobScheduler _jobScheduler;
+        private readonly IJobScheduler _jobScheduler;
         private readonly SigningJobCreator _jobCreator;
         public const int HOURS_FILE_SHOULD_BE_ACCESSIBLE = 12;
 
         public ApiService(IAzureClient azureClient, IFileSystem fs, ICertificateService certs, ISimpleCredentialStore credentialStore, 
-            LoggingService log, JobScheduler jobScheduler, SigningJobCreator jobCreator)
+            LoggingService log, IJobScheduler jobScheduler, SigningJobCreator jobCreator)
         {
             _azure = azureClient.GetRoot();
             _azureClient = azureClient;
